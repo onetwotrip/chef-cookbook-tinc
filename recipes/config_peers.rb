@@ -7,13 +7,16 @@ Interface = tinc-#{network_name}
 Cipher = aes128
 EOF
 
-  connect_to = []
   search(:node, "tinc_networks_#{network_name}_host_file:[* TO *]").each do |peer_node|
-    next if peer_node.name == node.name
     file "/etc/tinc/#{network_name}/hosts/#{peer_node['tinc']['name']}" do
       content peer_node['tinc']['networks'][network_name]['host_file']
       mode 0600
     end
+  end
+
+  connect_to = []
+  search(:node, "tinc_networks_#{network_name}_host_file:[* TO *] #{network['connect_to']}").each do |peer_node|
+    next if peer_node.name == node.name
     connect_to << peer_node['tinc']['name']
   end
   content_connect_to = connect_to

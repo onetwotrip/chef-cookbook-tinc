@@ -5,8 +5,8 @@ default['tinc']['address'] =
 default['tinc']['networks'] = {
   'default' => {
     'enabled' => true,
-    'interface' => 'tinc0',
     'ipv4_subnet' => '172.23',
     'ipv6_subnet' => 'fc00:5ca1:ab1e',
+    'connect_to' => 'AND tags:tinc-hub',
   },
 }

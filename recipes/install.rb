@@ -8,6 +8,7 @@ directory '/var/run/tinc'
 
 netsboot = ""
 node['tinc']['networks'].each do |network_name, network|
+  next unless network['enabled']
   netsboot << "#{network_name}\n"
   network_config_dir_path = "/etc/tinc/#{network_name}/hosts"
 
