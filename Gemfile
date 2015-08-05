@@ -6,6 +6,7 @@ gem 'foodcritic', '~> 3.0'
 gem 'rake'
 gem 'strainer'
 gem 'rubocop'
+gem 'net-ssh', '~> 2.9.1'
 
 group :integration do
   gem 'test-kitchen', '~> 1.0'
