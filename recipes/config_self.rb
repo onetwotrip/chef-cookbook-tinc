@@ -1,40 +1,44 @@
-file "/etc/tinc/#{node['tinc']['net']}/hosts/#{node['tinc']['name']}" do
-  content <<EOF
+node['tinc']['networks'].each do |network_name, network|
+
+  file "/etc/tinc/#{network_name}/hosts/#{node['tinc']['name']}" do
+    content <<EOF
 Address = #{node['tinc']['address']}
-Subnet = #{node['tinc']['ipv4_address']}
-Subnet = #{node['tinc']['ipv6_address']}
+Subnet = #{node['tinc']['networks'][network_name]['ipv4_address']}
+Subnet = #{node['tinc']['networks'][network_name]['ipv6_address']}
 EOF
-  action :create_if_missing
-end
-
-execute "tincd -n #{node['tinc']['net']} -K 4096 < /dev/null" do
-  creates "/etc/tinc/#{node['tinc']['net']}/rsa_key.priv"
-end
-
-ruby_block 'tinc::host' do
-  block do
-    node.set['tinc']['host_file'] = File.read("/etc/tinc/#{node['tinc']['net']}/hosts/#{node['tinc']['name']}")
-    node.save
+    action :create_if_missing
   end
-end
 
-file "/etc/tinc/#{node['tinc']['net']}/tinc-up" do
-  content <<EOF
+  execute "tincd -n #{network_name} -K 4096 < /dev/null" do
+    creates "/etc/tinc/#{network_name}/rsa_key.priv"
+  end
+
+  ruby_block 'tinc::host' do
+    block do
+      node.set['tinc']['networks'][network_name]['host_file'] = File.read("/etc/tinc/#{network_name}/hosts/#{node['tinc']['name']}")
+      node.save
+    end
+  end
+
+  file "/etc/tinc/#{network_name}/tinc-up" do
+    content <<EOF
 #!/bin/sh
 ifconfig $INTERFACE up \\
-    #{node['tinc']['ipv4_address']} netmask 255.255.0.0 \\
-    add #{node['tinc']['ipv6_address']}/64
-ip -6 route add #{node['tinc']['ipv6_subnet']}::/48 dev $INTERFACE
+    #{node['tinc']['networks'][network_name]['ipv4_address']} netmask 255.255.0.0 \\
+    add #{node['tinc']['networks'][network_name]['ipv6_address']}/64
+ip -6 route add #{node['tinc']['networks'][network_name]['ipv6_subnet']}::/48 dev $INTERFACE
 EOF
-  mode 0755
-  notifies :restart, 'service[tinc]'
-end
+    mode 0755
+    notifies :restart, 'service[tinc]'
+  end
 
-file "/etc/tinc/#{node['tinc']['net']}/tinc-down" do
-  content <<EOF
+  file "/etc/tinc/#{network_name}/tinc-down" do
+    content <<EOF
 #!/bin/sh
 ifconfig $INTERFACE down
 EOF
-  mode 0755
-  notifies :restart, 'service[tinc]'
+    mode 0755
+    notifies :restart, 'service[tinc]'
+  end
+
 end
