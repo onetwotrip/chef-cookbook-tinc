@@ -8,7 +8,7 @@ Cipher = aes128
 EOF
 
   connect_to = []
-  search(:node, "tinc_#{network_name}_host_file:[* TO *]").each do |peer_node|
+  search(:node, "tinc_networks_#{network_name}_host_file:[* TO *]").each do |peer_node|
     next if peer_node.name == node.name
     file "/etc/tinc/#{network_name}/hosts/#{peer_node['tinc']['name']}" do
       content peer_node['tinc']['networks'][network_name]['host_file']
