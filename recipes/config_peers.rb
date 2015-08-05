@@ -2,8 +2,8 @@ node['tinc']['networks'].each do |network_name, network|
 
   content_tinc_conf = <<EOF
 Name = #{node['tinc']['name']}
-GraphDumpFile = /var/run/tinc_#{network_name}.dot
-Interface = #{network['interface']}
+GraphDumpFile = /var/run/tinc-#{network_name}.dot
+Interface = tinc-#{network_name}
 Cipher = aes128
 EOF
 
