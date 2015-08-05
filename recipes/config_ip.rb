@@ -23,14 +23,15 @@ node['tinc']['networks'].each do |network_name, network|
     end
   end
 
+  node_hex_address = node['tinc']['networks'][network_name]['hex_address']
   node.set['tinc']['networks'][network_name]['ipv4_address'] = [
     network['ipv4_subnet'],
-    network['hex_address'][0..1].to_i(16),
-    network['hex_address'][2..3].to_i(16)
+    node_hex_address[0..1].to_i(16),
+    node_hex_address[2..3].to_i(16)
   ].join('.')
 
   node.set['tinc']['networks'][network_name]['ipv6_address'] = [
     network['ipv6_subnet'],
-    network['hex_address'],
+    node_hex_address,
     '0:0:0:1'].join(':')
 end

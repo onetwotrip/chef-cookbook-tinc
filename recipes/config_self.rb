@@ -3,8 +3,8 @@ node['tinc']['networks'].each do |network_name, network|
   file "/etc/tinc/#{network_name}/hosts/#{node['tinc']['name']}" do
     content <<EOF
 Address = #{node['tinc']['address']}
-Subnet = #{node['tinc']['networks'][network_name]['ipv4_address']}
-Subnet = #{node['tinc']['networks'][network_name]['ipv6_address']}
+Subnet = #{network['ipv4_address']}
+Subnet = #{network['ipv6_address']}
 EOF
     action :create_if_missing
   end
@@ -24,9 +24,9 @@ EOF
     content <<EOF
 #!/bin/sh
 ifconfig $INTERFACE up \\
-    #{node['tinc']['networks'][network_name]['ipv4_address']} netmask 255.255.0.0 \\
-    add #{node['tinc']['networks'][network_name]['ipv6_address']}/64
-ip -6 route add #{node['tinc']['networks'][network_name]['ipv6_subnet']}::/48 dev $INTERFACE
+    #{network['ipv4_address']} netmask 255.255.0.0 \\
+    add #{network['ipv6_address']}/64
+ip -6 route add #{network['ipv6_subnet']}::/48 dev $INTERFACE
 EOF
     mode 0755
     notifies :restart, 'service[tinc]'
