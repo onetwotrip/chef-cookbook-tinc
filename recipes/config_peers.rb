@@ -15,7 +15,10 @@ EOF
   end
 
   connect_to = []
-  search(:node, "tinc_networks_#{network_name}_host_file:[* TO *] #{network['connect_to']}").each do |peer_node|
+  search_string = network['hub_criteria'] ? network['hub_to_hub'] : network['peer_to_hub']
+  Chef::Log.warn("search string: #{search_string}")
+  search(:node, search_string).each do |peer_node|
+
     next if peer_node.name == node.name
     connect_to << peer_node['tinc']['name']
   end
