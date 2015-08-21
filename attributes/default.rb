@@ -8,7 +8,7 @@ default['tinc']['networks'] = {
     'ipv4_subnet' => '172.23',
     'ipv6_subnet' => 'fc00:5ca1:ab1e',
     'hub_criteria' => node['tags'].include?('tinc-hub'),
-    'peer_to_hub' => "chef_environment:#{node.environment} AND tags:tinc-hub",
+    'peer_to_hub' => "chef_environment:#{node.environment}",
     'hub_to_hub' => "tags:tinc-hub",
   },
 }

@@ -8,7 +8,7 @@ Cipher = aes128
 EOF
 
   search(:node, "tinc_networks_#{network_name}_host_file:[* TO *]").each do |peer_node|
-    file "/etc/tinc/#{network_name}/hosts/#{peer_node['tinc']['name']}" do
+    file "/etc/tinc/#{network_name}/hosts/#{peer_node.name.gsub(/[^a-z0-9]/, '_')}" do
       content peer_node['tinc']['networks'][network_name]['host_file']
       mode 0600
     end
@@ -17,7 +17,7 @@ EOF
   connect_to = []
   search_string = network['hub_criteria'] ? network['hub_to_hub'] : network['peer_to_hub']
   Chef::Log.warn("search string: #{search_string}")
-  search(:node, search_string).each do |peer_node|
+  search(:node, "tinc_networks_#{network_name}_host_file:[* TO *] AND #{search_string}").each do |peer_node|
 
     next if peer_node.name == node.name
     connect_to << peer_node['tinc']['name']
