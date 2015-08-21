@@ -1,21 +1,42 @@
+subnets_content = ''
+node.attributes['network']['interfaces'].sort.each do |iface_name,iface|
+  next if iface_name == 'lo'
+  iface['addresses'].sort.each do |addr_name,addr|
+    next if addr_name == node['tinc']['address'] # skip main IP
+    next if not ['inet', 'inet6'].include?(addr['family'])
+    subnets_content << "Subnet = #{addr_name}\n"
+  end
+end
+
 node['tinc']['networks'].each do |network_name, network|
-
-  file "/etc/tinc/#{network_name}/hosts/#{node['tinc']['name']}" do
-    content <<EOF
-Address = #{node['tinc']['address']}
-Subnet = #{network['ipv4_address']}
-Subnet = #{network['ipv6_address']}
-EOF
-    action :create_if_missing
+  execute "rm -f /etc/tinc/#{network_name}/tinc.conf" do
+    creates "/etc/tinc/#{network_name}/rsa_key.pub"
   end
-
   execute "tincd -n #{network_name} -K 4096 < /dev/null" do
-    creates "/etc/tinc/#{network_name}/rsa_key.priv"
+    creates "/etc/tinc/#{network_name}/rsa_key.pub"
   end
 
-  ruby_block 'tinc::host' do
+  ruby_block 'tinc::node_set_pub_key' do
     block do
-      node.set['tinc']['networks'][network_name]['host_file'] = File.read("/etc/tinc/#{network_name}/hosts/#{node['tinc']['name']}")
+      node.set['tinc']['networks'][network_name]['pub_key'] = File.read("/etc/tinc/#{network_name}/rsa_key.pub")
+      node.save
+    end
+  end
+
+  hostfile_content = ''
+  file "/etc/tinc/#{network_name}/hosts/#{node['tinc']['name']}" do
+    hostfile_content = <<EOF
+Address = #{node['tinc']['address']}
+#{subnets_content}
+
+#{node['tinc']['networks'][network_name]['pub_key']}
+EOF
+    action :create
+  end
+
+  ruby_block 'tinc::set_node_host_file' do
+    block do
+      node.set['tinc']['networks'][network_name]['host_file'] = hostfile_content
       node.save
     end
   end
