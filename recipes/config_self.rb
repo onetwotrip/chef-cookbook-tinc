@@ -23,14 +23,15 @@ node['tinc']['networks'].each do |network_name, network|
     end
   end
 
-  hostfile_content = ''
-  file "/etc/tinc/#{network_name}/hosts/#{node['tinc']['name']}" do
-    hostfile_content = <<EOF
+  hostfile_content = <<EOF
 Address = #{node['tinc']['address']}
 #{subnets_content}
 
 #{node['tinc']['networks'][network_name]['pub_key']}
 EOF
+
+  file "/etc/tinc/#{network_name}/hosts/#{node['tinc']['name']}" do
+    content hostfile_content
     action :create
   end
 
