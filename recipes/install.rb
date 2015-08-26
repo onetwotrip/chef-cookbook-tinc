@@ -33,10 +33,11 @@ node['tinc']['networks'].each do |network_name, network|
       options opts
       restart_on_update true
       default_logger true
-      action(network_enabled ? [:enable,:start] : [:stop,:disable])
+      action(network_enabled ? :enable : :disable)
     end
     service "tinc-#{network_name}" do
       action :nothing
+      supports :restart => true, :reload => true
     end
   else
     raise RuntimeError.new(("#{self.recipe_name} doesn't support init style '#{node['tinc']['init_style']}'"))

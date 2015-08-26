@@ -1,6 +1,6 @@
+# Gather lan addresses
 subnets_content = ''
 node.attributes['network']['interfaces'].sort.each do |iface_name,iface|
-
   next if iface_name == 'lo'
   iface['addresses'].sort.each do |addr_name,addr|
     next if addr_name == node['tinc']['address'] # skip main IP
@@ -51,10 +51,10 @@ EOF
   signal = :reload
   case node['tinc']['init_style']
   when 'sysv'
-    service_name = 'tinc'
+    service_name = 'service[tinc]'
   when 'runit'
-    service_name = "tinc-#{network_name}"
-    signal = :hup
+    service_name = "service[tinc-#{network_name}]"
+    signal = :reload
   end
 
   file "/etc/tinc/#{network_name}/tinc-up" do
@@ -66,7 +66,7 @@ ifconfig $INTERFACE up \\
 ip -6 route add #{network['ipv6_subnet']}::/48 dev $INTERFACE
 EOF
     mode 0755
-    notifies signal, "service[#{service_name}]"
+    notifies signal, service_name
   end
 
   file "/etc/tinc/#{network_name}/tinc-down" do
@@ -75,6 +75,6 @@ EOF
 ifconfig $INTERFACE down
 EOF
     mode 0755
-    notifies signal, "service[#{service_name}]"
+    notifies signal, service_name
   end
 end

@@ -39,7 +39,7 @@ EOF
     service_name = 'tinc'
   when 'runit'
     service_name = "tinc-#{network_name}"
-    signal = :hup
+    signal = :reload
   end
 
   file "/etc/tinc/#{network_name}/tinc.conf" do
