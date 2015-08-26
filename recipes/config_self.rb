@@ -1,5 +1,6 @@
 subnets_content = ''
 node.attributes['network']['interfaces'].sort.each do |iface_name,iface|
+
   next if iface_name == 'lo'
   iface['addresses'].sort.each do |addr_name,addr|
     next if addr_name == node['tinc']['address'] # skip main IP
@@ -9,6 +10,9 @@ node.attributes['network']['interfaces'].sort.each do |iface_name,iface|
 end
 
 node['tinc']['networks'].each do |network_name, network|
+  network_enabled = node['tinc']['networks_enable'][network_name]
+  next unless network_enabled
+
   execute "rm -f /etc/tinc/#{network_name}/tinc.conf" do
     creates "/etc/tinc/#{network_name}/rsa_key.pub"
   end
@@ -25,6 +29,7 @@ node['tinc']['networks'].each do |network_name, network|
 
   hostfile_content = <<EOF
 Address = #{node['tinc']['address']}
+Port = #{network['port']}
 #{subnets_content}
 
 #{node['tinc']['networks'][network_name]['pub_key']}
@@ -42,6 +47,16 @@ EOF
     end
   end
 
+  service_name = ''
+  signal = :reload
+  case node['tinc']['init_style']
+  when 'sysv'
+    service_name = 'tinc'
+  when 'runit'
+    service_name = "tinc-#{network_name}"
+    signal = :hup
+  end
+
   file "/etc/tinc/#{network_name}/tinc-up" do
     content <<EOF
 #!/bin/sh
@@ -51,7 +66,7 @@ ifconfig $INTERFACE up \\
 ip -6 route add #{network['ipv6_subnet']}::/48 dev $INTERFACE
 EOF
     mode 0755
-    notifies :restart, 'service[tinc]'
+    notifies signal, "service[#{service_name}]"
   end
 
   file "/etc/tinc/#{network_name}/tinc-down" do
@@ -60,7 +75,6 @@ EOF
 ifconfig $INTERFACE down
 EOF
     mode 0755
-    notifies :restart, 'service[tinc]'
+    notifies signal, "service[#{service_name}]"
   end
-
 end

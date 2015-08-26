@@ -1,5 +1,6 @@
 node['tinc']['networks'].each do |network_name, network|
-
+  network_enabled = node['tinc']['networks_enable'][network_name]
+  next unless network_enabled
   content_tinc_conf = <<EOF
 Name = #{node['tinc']['name']}
 GraphDumpFile = /var/run/tinc-#{network_name}.dot
@@ -16,7 +17,10 @@ EOF
   end
 
   connect_to = []
-  search_string = network['hub_criteria'] ? network['hub_to_hub'] : network['peer_to_hub']
+  hub_search = search(:node, "name:#{node.name} AND #{network['hub_criteria']}")
+  i_am_hub = hub_search.length == 1
+  Chef::Log.fatal("Tinc search error: more than 1 result") if hub_search.length > 1
+  search_string = i_am_hub ? network['hub_to_hub'] : network['peer_to_hub']
   Chef::Log.warn("Tinc hub search string: \'#{search_string}\'")
   search(:node, "tinc_networks_#{network_name}_host_file:[* TO *] AND #{search_string}").each do |peer_node|
 
@@ -28,8 +32,18 @@ EOF
                        .map { |peer| "ConnectTo = #{peer}\n" }
                        .join
 
+  service_name = ''
+  signal = :reload
+  case node['tinc']['init_style']
+  when 'sysv'
+    service_name = 'tinc'
+  when 'runit'
+    service_name = "tinc-#{network_name}"
+    signal = :hup
+  end
+
   file "/etc/tinc/#{network_name}/tinc.conf" do
     content content_tinc_conf + content_connect_to
-    notifies :reload, 'service[tinc]'
+    notifies signal, "service[#{service_name}]"
   end
 end

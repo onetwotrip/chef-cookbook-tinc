@@ -13,7 +13,7 @@ node['tinc']['networks'].each do |network_name, network|
     hex_address_base = node.name
     loop do
       ha = Digest::MD5.hexdigest(hex_address_base)[-4..-1]
-      Chef::Log.warn("HEX ADDRESS: #{ha}")
+      Chef::Log.warn("Tinc hex address: #{ha}")
       if hex_address_unique?(network_name, ha)
         node.set['tinc']['networks'][network_name]['hex_address'] = ha
         node.save
