@@ -1,6 +1,6 @@
 node['tinc']['networks'].each do |network_name, network|
-  network_enabled = node['tinc']['networks_enable'][network_name]
-  next unless network_enabled
+  network_enable = node['tinc']['networks_enable'][network_name]['enable']
+  next unless network_enable
   content_tinc_conf = <<EOF
 Name = #{node['tinc']['name']}
 GraphDumpFile = /var/run/tinc-#{network_name}.dot

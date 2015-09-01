@@ -13,5 +13,10 @@ default['tinc']['networks'] = {
   },
 }
 default['tinc']['networks_enable'] = {
-  'default' => true,
+  'default' => {
+    'enable' => true,
+    'extra_nets_routes' => {
+      '10.10.10.10/24' => true,
+    },
+  }
 }

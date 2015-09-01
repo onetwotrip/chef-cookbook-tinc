@@ -8,8 +8,8 @@ directory '/var/run/tinc'
 
 netsboot = ""
 node['tinc']['networks'].each do |network_name, network|
-  network_enabled = node['tinc']['networks_enable'][network_name]
-  netsboot << "#{network_name}\n" if network_enabled
+  network_enable = node['tinc']['networks_enable'][network_name]['enable']
+  netsboot << "#{network_name}\n" if network_enable
   network_config_dir_path = "/etc/tinc/#{network_name}/hosts"
 
   directory network_config_dir_path do
@@ -33,7 +33,7 @@ node['tinc']['networks'].each do |network_name, network|
       options opts
       restart_on_update true
       default_logger true
-      action(network_enabled ? :enable : :disable)
+      action(network_enable ? :enable : :disable)
     end
     service "tinc-#{network_name}" do
       action :nothing
