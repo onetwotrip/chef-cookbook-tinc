@@ -25,6 +25,8 @@ EOF
   search(:node, "tinc_networks_#{network_name}_host_file:[* TO *] AND #{search_string}").each do |peer_node|
 
     next if peer_node.name == node.name # skip self
+    next if peer_node['tinc'].nil? or peer_node['tinc']['name'].nil?  # skip empty
+    Chef::Log.warn("Host '#{peer_node.name}' has '#{peer_node['tinc']['name']}'")
     connect_to << peer_node['tinc']['name']
   end
   content_connect_to = connect_to

@@ -7,16 +7,16 @@ default['tinc']['networks'] = {
     'port' => 655,
     'ipv4_subnet' => '172.23',
     'ipv6_subnet' => 'fc00:5ca1:ab1e',
-    'hub_criteria' => "tags:tinc-hub",
+    'hub_criteria' => "tags:tinc-default-hub",
     'peer_to_hub' => "chef_environment:#{node.environment}",
-    'hub_to_hub' => "tags:tinc-hub",
+    'hub_to_hub' => "tags:tinc-default-hub",
   },
 }
 default['tinc']['networks_enable'] = {
   'default' => {
-    'enable' => true,
+    'enable' => false,
     'extra_nets_routes' => {
-      '10.10.10.10/24' => true,
+      '10.10.10.10/24' => false,
     },
   }
 }

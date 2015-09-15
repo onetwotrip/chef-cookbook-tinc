@@ -61,7 +61,7 @@ EOF
 
   extra_nets_routes = node['tinc']['networks_enable'][network_name]['extra_nets_routes']
                       .select{ |_,on| on == true}
-                      .map { |net,_| "ip route add #{net} dev $INTERFACE" }
+                      .map { |net,_| "ip route replace #{net} dev $INTERFACE" }
                       .join("\n")
 
   file "/etc/tinc/#{network_name}/tinc-up" do
@@ -70,7 +70,7 @@ EOF
 ifconfig $INTERFACE up \\
     #{network['ipv4_address']} netmask 255.255.0.0 \\
     add #{network['ipv6_address']}/64
-ip route add #{network['ipv6_subnet']}::/48 dev $INTERFACE
+ip route replace #{network['ipv6_subnet']}::/48 dev $INTERFACE
 #{extra_nets_routes}
 EOF
     mode 0755
@@ -80,7 +80,7 @@ EOF
   file "/etc/tinc/#{network_name}/tinc-down" do
     content <<EOF
 #!/bin/sh
-ifconfig $INTERFACE down
+ip link set $INTERFACE down
 EOF
     mode 0755
     notifies signal, service_name
