@@ -8,5 +8,5 @@ version '0.3.2'
 
 supports 'ubuntu', '>= 12.04'
 
-depends 'runit', '~> 1.5.10'
+depends 'runit', '>= 1.5.10'
 depends 'sysctl'
